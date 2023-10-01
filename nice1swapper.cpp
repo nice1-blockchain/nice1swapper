@@ -5,10 +5,10 @@
 
 using namespace eosio;
 
-class [[eosio::contract("nice1swapone")]] nice1swapone : public contract {
+class [[eosio::contract("nice1swapper")]] nice1swapper : public contract {
 
 public:
-  nice1swapone(name receiver, name code, datastream<const char*> ds) : contract(receiver, code, ds) {}
+  nice1swapper(name receiver, name code, datastream<const char*> ds) : contract(receiver, code, ds) {}
 
   //The "asetswap" action allows you to add lines to the table that stores the data necessary to process the swaps between tokens.
   [[eosio::action]]
@@ -31,16 +31,16 @@ public:
       check(sending_qty.is_valid(), "Invalid sending quantity");
   
       // Check if "ref" already exists in the table
-      testa1_table testa1(get_self(), get_self().value);
-      auto existing_row = testa1.find(ref.value);
+      swap_table swap(get_self(), get_self().value);
+      auto existing_row = swap.find(ref.value);
       
-      if (existing_row != testa1.end()) {
+      if (existing_row != swap.end()) {
         // If "ref" already exists, deny transaction
         check(false, "Ref already exists in the table");
       }
 
       // Check if "memo_expected" already exists in the table as a secondary index
-      auto memo_index = testa1.get_index<"memoexpected"_n>();
+      auto memo_index = swap.get_index<"memoexpected"_n>();
       auto memo_existing_row = memo_index.find(memo_expected);
       
       if (memo_existing_row != memo_index.end()) {
@@ -49,7 +49,7 @@ public:
       }
 
       // If "ref" and "memo_expected" are valid, create a new entry in the table
-      testa1.emplace(owner, [&](auto& row) {
+      swap.emplace(owner, [&](auto& row) {
         row.ref = ref;
         row.receiving_token_contract_account = receiving_token_contract_account;
         row.receiving_tick = receiving_tick;
@@ -69,12 +69,12 @@ public:
     require_auth(owner);
 
     // Check if "ref" exists in the table
-    testa1_table testa1(get_self(), get_self().value);
-    auto existing_row = testa1.find(ref.value);
+    swap_table swap(get_self(), get_self().value);
+    auto existing_row = swap.find(ref.value);
     
-    if (existing_row != testa1.end()) {
+    if (existing_row != swap.end()) {
       // If "ref" exists, delete the entry
-      testa1.erase(existing_row);
+      swap.erase(existing_row);
     } else {
       // If "ref" does not exist, display an error message
       check(false, "Ref does not exist in the table");
@@ -89,10 +89,10 @@ public:
     require_auth(owner);
 
     // Check if "ref" exists in the table
-    testa1_table testa1(get_self(), get_self().value);
-    auto existing_row = testa1.find(ref.value);
+    swap_table swap(get_self(), get_self().value);
+    auto existing_row = swap.find(ref.value);
     
-    if (existing_row == testa1.end()) {
+    if (existing_row == swap.end()) {
       // If "ref" does not exist, cancel the transaction and display an error.
       check(false, "Ref does not exist in the table");
     }
@@ -104,7 +104,7 @@ public:
     }
 
     // Update "active" status in the table
-    testa1.modify(existing_row, owner, [&](auto& row) {
+    swap.modify(existing_row, owner, [&](auto& row) {
       row.active = new_active_state;
     });
   }
@@ -115,8 +115,8 @@ public:
   {
     if (to == get_self()) {
       // Check if the field "memo" exactly matches "memo_expected" in table.
-      testa1_table testa1(get_self(), get_self().value);
-      auto memo_index = testa1.get_index<"memoexpected"_n>();
+      swap_table swap(get_self(), get_self().value);
+      auto memo_index = swap.get_index<"memoexpected"_n>();
       auto memo_existing_row = memo_index.find(std::stoull(memo));
 
       if (memo_existing_row != memo_index.end() && std::to_string(memo_existing_row->memo_expected) == memo) 
@@ -152,7 +152,7 @@ public:
             permission_level{get_self(), "active"_n},
              destination_contract,
             "transfer"_n,
-            std::make_tuple(get_self(), from, quantity_to_transfer, std::string("ALL OK"))
+            std::make_tuple(get_self(), from, quantity_to_transfer, std::string("Swap done!"))
         );
 
         // Send the 'transfer' action.
@@ -182,9 +182,9 @@ private:
     uint64_t by_memo_expected() const { return memo_expected; }
   };
 
-  typedef multi_index<"testa1"_n, test_row,
+  typedef multi_index<"swap"_n, test_row,
     indexed_by<"memoexpected"_n, const_mem_fun<test_row, uint64_t, &test_row::by_memo_expected>>
-  > testa1_table;
+  > swap_table;
 
   uint128_t combine_ids(
     uint64_t contract1, uint64_t symbol1, uint64_t precision1,
