@@ -1,4 +1,4 @@
-# nice1swapone
+# nice1swapper
 
 Introduction: **An easy way to offer swap between tokens**, valid for EOSio (antelope) blockchains.
 
