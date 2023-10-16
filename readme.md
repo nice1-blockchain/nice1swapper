@@ -20,6 +20,6 @@ In this action you will be able to configure fields such as, the token contract 
 You can make different configurations with different ratios according to your needs.
  
 > Example 1: 1EOS = 10Gold , 5EOS = 50 Gold , 10 EOS = 100 Gold  
-> Example > 2: 1EOS = 10Gold , 5EOS = 60 Gold , 10 EOS = 150 Gold
+> Example 2: 1EOS = 10Gold , 5EOS = 60 Gold , 10 EOS = 150 Gold
 
 Users will only need to make a standard transfer to the contract and will instantly receive the counterpart. 
